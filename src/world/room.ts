@@ -26,7 +26,7 @@ export interface Room {
     pickups: Pickup[]; // = []
 
     nextRoomDoorOpen: boolean;
-    nextRooms: Room[];
+    readonly nextRooms: Room[];
     readonly nextRoomDirs: Direction[];
     readonly nextRoomCommonBlocks: Block[];
     readonly nextRoomTransitionRects: Rect[];

@@ -4,7 +4,7 @@ import {drawAllProjectiles, drawAllProjectilesDebugUI} from '#/entity/projectile
 import {
     drawAllTankModels,
     drawAllTanksDevUI,
-    drawEnemyTanksUI,
+    drawTanksFloatUI,
     drawPlayerTankUI,
 } from '#/entity/tank/drawing';
 import type {Renderer} from '#/renderer';
@@ -39,7 +39,7 @@ export function drawGame(renderer: Renderer, state: GameState, options: DrawGame
             drawAllProjectilesDebugUI(renderer, state.projectiles);
             drawAllTanksDevUI(renderer, state.tanks);
         }
-        drawEnemyTanksUI(renderer, state.tanks);
+        drawTanksFloatUI(renderer, state.tanks);
         drawPlayerTankUI(renderer, state.player);
     }
 

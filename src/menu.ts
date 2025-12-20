@@ -1,6 +1,7 @@
 import {GameControlAction, type EventQueue} from '#/events';
 import {computed, effect, signal, type Signal} from '#/signals';
 import {WChildrenInput, wComponent, WCssStyleInput, WElementBasicAttributes} from '#/ui/w';
+import {Duration} from './math/duration';
 
 export type MenuView = 'main' | 'pause' | 'dead' | 'completed';
 
@@ -13,6 +14,7 @@ export class MenuBridge {
     readonly view = signal<MenuView | null>('main');
     readonly volume = signal(VOLUME_DEFAULT);
     readonly muted = signal(false);
+    readonly completionTime = signal<Duration | null>(null);
     fullscreenToggleExpected = false;
 
     private events: EventQueue;
@@ -36,6 +38,7 @@ export class MenuBridge {
             view: this.view,
             volume: this.volume,
             muted: this.muted,
+            completionTime: this.completionTime,
             onGameControl,
             onFullscreenToggle,
         };
@@ -46,12 +49,13 @@ interface MenuProps {
     view: Signal<MenuView | null>;
     volume: Signal<number>;
     muted: Signal<boolean>;
+    completionTime: Signal<Duration | null>;
     onGameControl: (action: GameControlAction) => void;
     onFullscreenToggle: () => void;
 }
 
 export const Menu = wComponent((w, props: MenuProps) => {
-    const {volume, muted, view, onGameControl, onFullscreenToggle} = props;
+    const {volume, muted, view, completionTime, onGameControl, onFullscreenToggle} = props;
 
     return w.div(
         {
@@ -80,6 +84,13 @@ export const Menu = wComponent((w, props: MenuProps) => {
                         return null;
                 }
             }),
+            () =>
+                completionTime()
+                    ? w.h3(
+                          {class: 'sidebar__completion'},
+                          'Time: ' + completionTime()?.toHumanString(),
+                      )
+                    : null,
             computed(() => {
                 if (view() !== 'pause') return null;
                 return MenuButton(

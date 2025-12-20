@@ -29,6 +29,7 @@ export function handleGameEvents(state: GameState, menu: MenuBridge): void {
                     }
                     startGame(state);
                     menu.view.set(null);
+                    menu.completionTime.set(null);
                 }
 
                 soundEvent(state.sounds, 'game-started');
@@ -68,13 +69,21 @@ export function handleGameEvents(state: GameState, menu: MenuBridge): void {
 
             case 'game-completed': {
                 completeGame(state);
-                const timeoutMs = 1000;
-                notify('Congratulation!', {timeoutMs});
-                notify(`Completed in ${state.player.survivedFor.toHumanString()}`, {timeoutMs});
+                notify('Congratulation!', {timeoutMs: 2500});
+                const survivedFor = state.player.survivedFor;
+                const completeMsg = `Completed in ${survivedFor.toHumanString()}`;
+                notify(completeMsg, {timeoutMs: 20000});
+                logger.info(completeMsg);
+                menu.completionTime.set(survivedFor);
+                setTimeout(() => {
+                    // NOTE: Play victory sound with a delay, because it feels weird
+                    //       if it plays immediately after killing the last enemy.
+                    soundEvent(state.sounds, 'game-victory');
+                }, 300);
                 setTimeout(() => {
                     // NOTE: Delay showing the menu to not break the immersion immediately.
                     menu.view.set('completed');
-                }, timeoutMs);
+                }, 1000);
                 continue;
             }
         }

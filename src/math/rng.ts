@@ -44,6 +44,7 @@ export class Random {
     }
 
     int32Range(min: number, max: number): number {
+        if (min == max) return min;
         // TODO: Assert min < max and
         // const n = this.float();
         // return Math.floor(n * (max - min) + min);

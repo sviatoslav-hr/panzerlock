@@ -1,7 +1,7 @@
 {
     "name": "tanks1990",
     "private": true,
-    "version": "0.2.14",
+    "version": "0.3.0",
     "homepage": "https://sviatoslav-hr.github.io/tanks1990/",
     "type": "module",
     "scripts": {
@@ -10,7 +10,8 @@
         "build:prod": "tsc && vite build --config .config/vite.config.js --base /tanks1990/",
         "lint": "tsc --noEmit",
         "lint:watch": "tsc --noEmit --watch",
-        "test": "vitest --config .config/vitest.config.js --watch=false",
+        "test": "vitest --config .config/vitest.config.js --run --typecheck",
+        "test:json": "vitest --config .config/vitest.config.js --run --reporter=json",
         "test:watch": "vitest --config .config/vitest.config.js --watch",
         "gen:assets": "node .scripts/gen-assets.cjs"
     },

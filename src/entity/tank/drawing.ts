@@ -6,18 +6,16 @@ import {roomSizeInCells} from '#/world/room';
 
 export function drawAllTankModels(renderer: Renderer, tanks: Tank[]): void {
     for (const tank of tanks) {
-        if (!tank.dead) {
-            tank.sprite.draw(renderer, tank, tank.direction);
-            if (tank.hasShield) {
-                tank.shieldSprite.draw(renderer, tank.shieldBoundary);
-            }
+        if (tank.dead) continue;
+        tank.sprite.draw(renderer, tank, tank.direction);
+        if (tank.hasShield) {
+            tank.shieldSprite.draw(renderer, tank.shieldBoundary);
         }
     }
 }
 
-export function drawEnemyTanksUI(renderer: Renderer, tanks: Tank[]): void {
+export function drawTanksFloatUI(renderer: Renderer, tanks: Tank[]): void {
     for (const tank of tanks) {
-        if (!isEnemyTank(tank)) continue;
         // NOTE: Draw health bar animation even if dead for dramatic effect.
         // NOTE: Draw hp bar only if the tank is not full health.
         if ((!tank.dead || tank.healthAnimation.active) && tank.health < tank.schema.maxHealth) {

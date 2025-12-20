@@ -33,6 +33,7 @@ export abstract class Tank extends Entity {
     dead = true;
     hasShield = false;
     direction = Direction.NORTH;
+    aliveForMs = 0;
 
     velocity = 0;
     lastAcceleration = 0;

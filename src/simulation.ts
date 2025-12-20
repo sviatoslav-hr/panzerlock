@@ -46,7 +46,7 @@ export function simulateEntities(dt: Duration, state: GameState, camera: Camera)
     }
     simulateAllTanks(dt, state);
     simulateAllProjectiles(dt, state);
-    simulatePickups(state);
+    simulatePickups(dt, state);
 }
 
 function simulateEffects(dt: Duration, state: GameState): void {
