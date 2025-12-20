@@ -127,9 +127,15 @@ canvas {
 }
 .menu__sidebar .sidebar__header {
     text-align: center;
-    margin-bottom: 1.25rem;
     color: var(--color-text);
 }
+.sidebar__header + .menu-btn {
+    margin-top: 1.25rem;
+}
+.sidebar__completion {
+    text-align: center;
+}
+
 .menu__content {
     flex-grow: 1;
     height: 100%;

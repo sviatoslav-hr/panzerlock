@@ -3,11 +3,11 @@
 ## DOING
 
 ## NEXT TODO
-- [ ] Add Music for completion of the game
 - [ ] Add animation/SFX to room door opening to hint player that's where he needs to go next
 - [ ] Figure out better level progression (enemies and upgrades)
 
 ## SHOULD BE FIXED
+- [ ] Add healing animation for 'above' hp bars.s
 - [ ] **Movement improvement!** (Choose one approach)
     a. Change movement to move only by fractions of cells (e.g. 1/16 of a cell)
         This will be easier to pathfind. And also will *may* the UX by fixing the issue with the player being able to pass through blocks.

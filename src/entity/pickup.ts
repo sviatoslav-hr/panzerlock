@@ -10,6 +10,7 @@ import {
 } from '#/entity/tank/generation';
 import {activateTankShield, restoreTankHealth} from '#/entity/tank/simulation';
 import {Rect, scaleRectCentered} from '#/math';
+import {Duration} from '#/math/duration';
 import {random} from '#/math/rng';
 import {Renderer} from '#/renderer';
 import {Sprite} from '#/renderer/sprite';
@@ -40,6 +41,8 @@ export class Pickup extends Entity {
     readonly sprite: Sprite<string>;
     readonly spriteRect: Rect;
     readonly frameIndex: number;
+    readonly animationPulseSize = random.int32Range(100, 200);
+    aliveForMs = 0;
 
     constructor(type: PickupType, x: number, y: number) {
         super();
@@ -69,20 +72,31 @@ const pickupColors: Record<PickupType, string> = {
 };
 
 export function drawPickups(renderer: Renderer, pickups: Pickup[]): void {
-    const bgOpacity = Math.round(0.33 * 255).toString(16);
+    const bgOpacity = Math.floor(0.33 * 255).toString(16);
     for (const pickup of pickups) {
         if (pickup.dead) continue;
-        const color = pickupColors[pickup.type];
-        renderer.setFillColor(color + bgOpacity);
-        renderer.fillRect2(pickup);
-        renderer.setStrokeColor(color);
-        renderer.strokeBoundary(pickup, 2);
-        pickup.sprite.draw(renderer, pickup.spriteRect);
+        const pulseSize = pickup.animationPulseSize;
+        const alpha = (Math.sin(pickup.aliveForMs / pulseSize) + 1) / 2 / 3 + 0.66;
+        renderer.setGlobalAlpha(alpha);
+        {
+            const color = pickupColors[pickup.type];
+            renderer.setFillColor(color + bgOpacity);
+            renderer.fillRect2(pickup);
+            renderer.setStrokeColor(color);
+            renderer.strokeBoundary(pickup, 2);
+            pickup.sprite.draw(renderer, pickup.spriteRect);
+        }
+        renderer.setGlobalAlpha(1);
     }
 }
 
-export function simulatePickups(state: GameState): void {
+export function simulatePickups(dt: Duration, state: GameState): void {
     const room = state.world.activeRoom;
+    for (const pickup of room.pickups) {
+        if (pickup.dead) continue;
+        pickup.aliveForMs += dt.milliseconds;
+    }
+
     // NOTE: Iterate through all pickups in the room and apply them to the player.
     for (const tank of state.tanks) {
         if (tank.dead) continue;
@@ -138,15 +152,14 @@ export function generatePickups(room: Room, state: GameState): void {
     const maxXRel = maxX / CELL_SIZE;
     const maxYRel = maxY / CELL_SIZE;
 
-    const selectedPickups = random.selectMany(allPickupTypes, 3, allPickupTypes.length);
+    const selectedPickups = random.selectMany(allPickupTypes, 2, 4);
+    // const selectedPickups = allPickupTypes.slice();
 
     let pickupType: PickupType | undefined;
     const offset = (CELL_SIZE - PICKUP_SIZE) / 2;
     const testRect: Rect = {x: 0, y: 0, width: PICKUP_SIZE, height: PICKUP_SIZE};
-    let iterations = 0;
     // TODO: Add iterations limit to prevent infinite loops.
     while ((pickupType = selectedPickups[0])) {
-        iterations += 1;
         // Use relative positions to place pickups exactly in the grid.
         const xRel = random.int32Range(minXRel, maxXRel);
         const yRel = random.int32Range(minYRel, maxYRel);

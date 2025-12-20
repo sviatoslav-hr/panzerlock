@@ -79,20 +79,28 @@ interface EnemyWaveConfig {
 
 // NOTE: Wave index corresponds to the room index.
 export const wavesPerRoom = makeWaves(
-    // NOTE: Start with one medium tank: not overwhelming with many enemies, but also not too easy to kill.
-    {enemies: ['medium'], limitAtOnce: 1},
     // {enemies: ['light', 'medium', 'heavy'], limitAtOnce: 3}, // NOTE: This is a test wave, only for dev purposes.
-    // NOTE: In the next room we teach player that he can play against multiple enemies at once.
-    {enemies: ['light', 'light'], limitAtOnce: 2},
-    // NOTE: In this room we show that more enemies can respawn.
-    {enemies: ['light', 'light', 'light']},
+    // NOTE: Start with one medium tank: not overwhelming with many enemies, but also not too easy to kill.
+    {enemies: ['light'], limitAtOnce: 1},
+    {enemies: ['light', 'light']},
+    {enemies: ['light', 'light'], limitAtOnce: 2}, // NOTE: In the next room we teach player that he can play against multiple enemies at once.
+    {enemies: ['light', 'light', 'light']}, // NOTE: In this room we show that more enemies can respawn.
     {enemies: ['light', 'medium', 'light']},
+    {enemies: ['light', 'medium', 'medium']},
+    {enemies: ['medium', 'medium', 'medium']},
     {enemies: ['light', 'medium', 'light', 'medium']},
+    {enemies: ['light', 'medium', 'light', 'medium'], limitAtOnce: 3},
+    {enemies: ['light', 'light', 'medium', 'light', 'light'], limitAtOnce: 3},
     {enemies: ['light', 'light', 'medium', 'light', 'medium'], limitAtOnce: 3},
+    {enemies: ['light', 'light', 'heavy', 'light', 'medium']},
     {enemies: ['light', 'medium', 'heavy', 'light', 'medium']},
-    {enemies: ['light', 'medium', 'heavy', 'medium', 'heavy', 'medium']},
-    {enemies: ['light', 'light', 'medium', 'heavy', 'medium', 'heavy', 'medium'], limitAtOnce: 4},
-    {enemies: ['light', 'medium', 'medium', 'heavy', 'medium', 'heavy', 'medium']},
+    {enemies: ['light', 'light', 'heavy', 'medium', 'medium']},
+    {enemies: ['light', 'medium', 'heavy', 'medium', 'light', 'medium']},
+    {enemies: ['light', 'medium', 'heavy', 'light', 'medium', 'heavy']},
+    {enemies: ['light', 'light', 'medium', 'heavy', 'light', 'medium', 'heavy'], limitAtOnce: 4},
+    {enemies: ['light', 'medium', 'medium', 'heavy', 'medium', 'medium', 'heavy']},
+    {enemies: ['light', 'medium', 'light', 'medium', 'light', 'medium', 'light', 'medium']},
+    {enemies: ['heavy', 'heavy', 'light', 'medium', 'light', 'light', 'medium', 'medium']},
 );
 
 function makeWaves(...configs: EnemyWaveConfig[]): EnemyWave[] {

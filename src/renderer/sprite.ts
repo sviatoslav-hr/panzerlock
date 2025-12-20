@@ -121,8 +121,8 @@ export class Sprite<K extends string> {
         try {
             let fx = this.frameWidth * this.frameIndex + this.offset.x + this.framePadding;
             let fy = this.state.index * this.frameHeight + this.offset.y + this.framePadding;
-            let fw = this.frameWidth - this.framePadding * 2;
-            let fh = this.frameHeight - this.framePadding * 2;
+            let fw = Math.floor(this.frameWidth - this.framePadding * 2);
+            let fh = Math.floor(this.frameHeight - this.framePadding * 2);
             const isHorizontal = fmod(rotationDeg, 180) === 90;
             let dx = -boundary.width / 2;
             let dy = -boundary.height / 2;

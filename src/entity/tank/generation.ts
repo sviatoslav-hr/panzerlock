@@ -18,50 +18,82 @@ export interface TankSchema {
 }
 
 export function makeTankSchema(bot: boolean, kind: TankPartKind): TankSchema {
-    // NOTE: Player should be faster because the game feel better this way.
-    const speedMult = bot ? 1 : 1.5;
-    const shootingMult = bot ? 1 : 1;
+    if (bot) {
+        return {
+            turret: kind,
+            body: kind,
+            damage: tankAttributes.damageEnemy[kind],
+            reloadTime: Duration.milliseconds(tankAttributes.reloadMillisEnemy[kind]),
+            maxHealth: tankAttributes.maxHealthEnemy[kind],
+            maxSpeed: tankAttributes.topSpeedEnemy[kind],
+            topSpeedReachTime: Duration.milliseconds(tankAttributes.topSpeedReachMillisEnemy),
+        };
+    }
+    assert(kind === 'medium', 'Player tanks are always medium kind');
     return {
-        // NOTE: For now turret and body are the same kind for the sake of simplicity.
         turret: kind,
         body: kind,
-        damage: tankKindDamage[kind],
-        reloadTime: Duration.milliseconds(tankKindReloadTimeMillis[kind] * shootingMult),
-        maxHealth: tankKindMaxHealth[kind],
-        maxSpeed: tankKindSpeed[kind] * speedMult,
-        topSpeedReachTime: Duration.milliseconds(bot ? 150 : 50),
+        damage: tankAttributes.damagePlayer,
+        reloadTime: Duration.milliseconds(tankAttributes.reloadMillisPlayer),
+        maxHealth: tankAttributes.maxHealthPlayer,
+        maxSpeed: tankAttributes.topSpeedPlayer,
+        topSpeedReachTime: Duration.milliseconds(tankAttributes.topSpeedReachMillisPlayer),
     };
 }
 
-export const RESTORE_HP_AMOUNT = 10;
+export const RESTORE_HP_AMOUNT = 100; // full hp
 export const SPEED_INCREASE_MULT = 0.1; // 10% speed increase per power-up
 export const DAMAGE_INCREASE_MULT = 0.35; // 35% damage increase per power-up
 export const RELOAD_INCREASE_MULT = 0.1; // 10% reload time decrease per power-up
 export const SHIELD_PICKUP_DURATION = Duration.milliseconds(10000);
 export const SHIELD_SPAWN_DURATION = Duration.milliseconds(1500);
 
-const tankKindMaxHealth: Record<TankPartKind, number> = {
-    light: 20,
-    medium: 30,
-    heavy: 40,
-};
+interface TankAttributes {
+    maxHealthEnemy: Record<TankPartKind, number>;
+    maxHealthPlayer: number;
+    topSpeedEnemy: Record<TankPartKind, number>;
+    topSpeedPlayer: number;
+    topSpeedReachMillisEnemy: number;
+    topSpeedReachMillisPlayer: number;
+    damageEnemy: Record<TankPartKind, number>;
+    damagePlayer: number;
+    reloadMillisEnemy: Record<TankPartKind, number>;
+    reloadMillisPlayer: number;
+}
 
-const tankKindSpeed: Record<TankPartKind, number> = {
-    light: (360 * 1000) / (60 * 60), // in m/s
-    medium: (300 * 1000) / (60 * 60),
-    heavy: (240 * 1000) / (60 * 60),
-};
-
-const tankKindDamage: Record<TankPartKind, number> = {
-    light: 5,
-    medium: 10,
-    heavy: 15,
-};
-
-const tankKindReloadTimeMillis: Record<TankPartKind, number> = {
-    light: 1000,
-    medium: 1500,
-    heavy: 2000,
+// NOTE: Attributes are picked so that:
+// - For a player it takes N hits to kill:
+// 2 for light enemy, 3 for medium enemy, 4-5 for heavy enemy
+// - For an enemy it takes M hits to kill player:
+// 4 for light enemy, 3 for medium enemy, 2 for heavy enemy
+const tankAttributes: TankAttributes = {
+    maxHealthEnemy: {
+        light: 50,
+        medium: 100,
+        heavy: 150,
+    },
+    maxHealthPlayer: 100,
+    topSpeedEnemy: {
+        light: (360 * 1000) / (60 * 60), // in m/s
+        medium: (300 * 1000) / (60 * 60),
+        heavy: (240 * 1000) / (60 * 60),
+    },
+    // NOTE: Player should be faster because the game feel better this way.
+    topSpeedPlayer: (450 * 1000) / (60 * 60),
+    topSpeedReachMillisEnemy: 150,
+    topSpeedReachMillisPlayer: 50,
+    damageEnemy: {
+        light: 25,
+        medium: 35,
+        heavy: 50,
+    },
+    damagePlayer: 35,
+    reloadMillisEnemy: {
+        light: 1000,
+        medium: 1500,
+        heavy: 2500,
+    },
+    reloadMillisPlayer: 1200,
 };
 
 function makeTankTurretSprite(keyPrefix: string, kind: TankPartKind): Sprite<'static'> {

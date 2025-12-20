@@ -88,6 +88,7 @@ function drawWorldGrid(renderer: Renderer, gridColor: string): void {
 }
 
 function drawRoomNumber(renderer: Renderer, room: Room): void {
+    const isFinalRoom = !room.nextRooms.length;
     const text = `${room.depth}`;
     const scale = renderer.camera.scale;
     const fontSize = CELL_SIZE * 8 * scale;
@@ -97,7 +98,8 @@ function drawRoomNumber(renderer: Renderer, room: Room): void {
     // NOTE: Offset the text since baseline=middle does not put the character actually in the middle.
     y += (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2 / scale;
     renderer.setGlobalAlpha(0.05);
-    renderer.fillText(text, {x, y, color: '#ffffff'});
+    const color = isFinalRoom ? Color.WHITE_NAVAJO : Color.WHITE;
+    renderer.fillText(text, {x, y, color});
     renderer.setGlobalAlpha(1);
 }
 

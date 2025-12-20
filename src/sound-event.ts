@@ -3,6 +3,7 @@ import {playSoundFrom, Sound, type SoundInput, SoundContext, SoundName} from '#/
 export type SoundEventType =
     | 'game-started'
     | 'game-over'
+    | 'game-victory'
     | 'enemy-shooting'
     | 'enemy-damaged'
     | 'enemy-destroyed'
@@ -13,7 +14,8 @@ export type SoundEventType =
 const allSoundsInputs: Record<SoundEventType, SoundInput> = {
     ['game-started']: {name: SoundName.LEVEL_START, volume: 0.5},
     ['game-over']: {name: SoundName.GAME_OVER, volume: 1},
-    // TODO: game-completed, room-cleared
+    ['game-victory']: {name: SoundName.VICTORY, volume: 1},
+    // TODO: room-cleared
 
     ['enemy-shooting']: {name: SoundName.SHOOTING, volume: 0.15},
     ['enemy-damaged']: {name: SoundName.HIT, volume: 0.3},

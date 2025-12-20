@@ -9,6 +9,7 @@ export enum SoundName {
     GAME_OVER = 'game_over',
     LEVEL_START = 'level_start',
     BATTLE_THEME = 'too_strong',
+    VICTORY = 'victory',
 }
 
 // TODO: These should be part of the sound context/config.
