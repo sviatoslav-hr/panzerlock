@@ -25,15 +25,14 @@
     "tank_green_turret_medium.png": "assets/tank_green_turret_medium.png"
   },
   "lvl-10-win.pzl.json": "lvl-10-win.pzl.json",
+  "panzerlock.ico": "panzerlock.ico",
   "sounds": {
-    "bgm_stage_9.wav": "sounds/bgm_stage_9.wav",
     "cannon_fire.wav": "sounds/cannon_fire.wav",
-    "confrontation.wav": "sounds/confrontation.wav",
     "explosion_8bit.wav": "sounds/explosion_8bit.wav",
     "game_over.wav": "sounds/game_over.wav",
     "hit.wav": "sounds/hit.wav",
     "level_start.wav": "sounds/level_start.wav",
-    "too_strong.wav": "sounds/too_strong.wav"
-  },
-  "tanks1990.ico": "tanks1990.ico"
+    "too_strong.wav": "sounds/too_strong.wav",
+    "victory.wav": "sounds/victory.wav"
+  }
 }

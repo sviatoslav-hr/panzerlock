@@ -1,13 +1,13 @@
 {
-    "name": "tanks1990",
+    "name": "panzerlock",
     "private": true,
     "version": "0.3.0",
-    "homepage": "https://sviatoslav-hr.github.io/tanks1990/",
+    "homepage": "https://sviatoslav-hr.github.io/panzerlock/",
     "type": "module",
     "scripts": {
         "dev": "vite --config .config/vite.config.js",
         "build": "tsc && vite build --config .config/vite.config.js",
-        "build:prod": "tsc && vite build --config .config/vite.config.js --base /tanks1990/",
+        "build:prod": "tsc && vite build --config .config/vite.config.js --base /panzerlock/",
         "lint": "tsc --noEmit",
         "lint:watch": "tsc --noEmit --watch",
         "test": "vitest --config .config/vitest.config.js --run --typecheck",

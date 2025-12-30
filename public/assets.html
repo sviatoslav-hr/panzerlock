@@ -1,7 +1,7 @@
 <html>
     <head>
-        <title>Tanks Assets</title>
-        <link rel="icon" type="image/x-icon" href="./tanks1990.ico" />
+        <title>Panzerlock Assets</title>
+        <link rel="icon" type="image/x-icon" href="./panzerlock.ico" />
         <style>
             :root {
                 --white: #fcfcfc;
@@ -64,7 +64,7 @@
                 cursor: default;
             }
             #fileview {
-                height: calc(calc(100% - 2rem) - calc(2*var(--padding-outer)));
+                height: calc(calc(100% - 2rem) - calc(2 * var(--padding-outer)));
                 display: flex;
                 flex-direction: row;
                 gap: var(--padding-outer);
@@ -180,9 +180,18 @@
             </div>
         </div>
 
-        <svg id="icon--directory" hidden xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3.75 4.5a.25.25 0 00-.25.25v14.5c0 .138.112.25.25.25h16.5a.25.25 0 00.25-.25V7.687a.25.25 0 00-.25-.25h-8.471a1.75 1.75 0 01-1.447-.765L8.928 4.61a.25.25 0 00-.208-.11H3.75zM2 4.75C2 3.784 2.784 3 3.75 3h4.971c.58 0 1.12.286 1.447.765l1.404 2.063a.25.25 0 00.207.11h8.471c.966 0 1.75.783 1.75 1.75V19.25A1.75 1.75 0 0120.25 21H3.75A1.75 1.75 0 012 19.25V4.75z"/></svg>
-        <svg id="icon--file" hidden xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5 2.5a.5.5 0 00-.5.5v18a.5.5 0 00.5.5h14a.5.5 0 00.5-.5V8.5h-4a2 2 0 01-2-2v-4H5zm10 0v4a.5.5 0 00.5.5h4a.5.5 0 00-.146-.336l-4.018-4.018A.5.5 0 0015 2.5zM3 3a2 2 0 012-2h9.982a2 2 0 011.414.586l4.018 4.018A2 2 0 0121 7.018V21a2 2 0 01-2 2H5a2 2 0 01-2-2V3z"/></svg>
-
+        <svg id="icon--directory" hidden xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path
+                fill-rule="evenodd"
+                d="M3.75 4.5a.25.25 0 00-.25.25v14.5c0 .138.112.25.25.25h16.5a.25.25 0 00.25-.25V7.687a.25.25 0 00-.25-.25h-8.471a1.75 1.75 0 01-1.447-.765L8.928 4.61a.25.25 0 00-.208-.11H3.75zM2 4.75C2 3.784 2.784 3 3.75 3h4.971c.58 0 1.12.286 1.447.765l1.404 2.063a.25.25 0 00.207.11h8.471c.966 0 1.75.783 1.75 1.75V19.25A1.75 1.75 0 0120.25 21H3.75A1.75 1.75 0 012 19.25V4.75z"
+            />
+        </svg>
+        <svg id="icon--file" hidden xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path
+                fill-rule="evenodd"
+                d="M5 2.5a.5.5 0 00-.5.5v18a.5.5 0 00.5.5h14a.5.5 0 00.5-.5V8.5h-4a2 2 0 01-2-2v-4H5zm10 0v4a.5.5 0 00.5.5h4a.5.5 0 00-.146-.336l-4.018-4.018A.5.5 0 0015 2.5zM3 3a2 2 0 012-2h9.982a2 2 0 011.414.586l4.018 4.018A2 2 0 0121 7.018V21a2 2 0 01-2 2H5a2 2 0 01-2-2V3z"
+            />
+        </svg>
 
         <script language="javascript" type="text/javascript">
             const imageExtensions = ['.png', '.jpg', '.jpeg', '.svg', '.ico'];
@@ -205,11 +214,14 @@
             let currentPath = parsePathFromQuery();
             let currentPathStr = currentPath?.length ? `./${currentPath.join('/')}` : './';
             let rootDir = null;
-            fetch('./list.json').then(response => response.json()).then(result => {
-                rootDir = result;
-                console.log('List loaded:', rootDir);
-                selectDirectory(currentPath);
-            }).catch(err => console.error('Error loading list.json:', err));
+            fetch('./list.json')
+                .then((response) => response.json())
+                .then((result) => {
+                    rootDir = result;
+                    console.log('List loaded:', rootDir);
+                    selectDirectory(currentPath);
+                })
+                .catch((err) => console.error('Error loading list.json:', err));
 
             function selectDirectory(dirPath, skipQuery) {
                 let dir = rootDir;
@@ -283,7 +295,7 @@
                 const a = document.createElement('a');
                 const url = `${currentPathStr}${dirName}`;
                 a.href = url;
-                a.onclick = ev => {
+                a.onclick = (ev) => {
                     ev.preventDefault();
                     selectDirectory([...currentPath, dirName]);
                 };
@@ -314,7 +326,7 @@
                 } else {
                     a.appendChild(createIcon('file'));
                 }
-                a.onclick = ev => {
+                a.onclick = (ev) => {
                     ev.preventDefault();
                     renderFilePreview(url);
                 };
@@ -334,7 +346,7 @@
                 const a = document.createElement('a');
                 a.href = '/';
                 a.textContent = 'Public';
-                a.onclick = ev => {
+                a.onclick = (ev) => {
                     ev.preventDefault();
                     selectDirectory([]);
                 };
@@ -344,7 +356,7 @@
                     a.textContent = dirName;
                     const currentDirPath = dirPath.slice(0, dirIndex + 1);
                     a.href = `/${currentDirPath.join('/')}`;
-                    a.onclick = ev => {
+                    a.onclick = (ev) => {
                         ev.preventDefault();
                         if (dirIndex === dirPath.length - 1) return;
                         selectDirectory(currentDirPath);
@@ -391,12 +403,15 @@
                     const p = document.createElement('pre');
                     p.textContent = 'Loading file...';
                     previewImage.appendChild(p);
-                    fetch(fileUrl).then(response => response.text()).then(text => {
-                        p.textContent = text;
-                    }).catch(err => {
-                        console.error('Error loading file:', err);
-                        p.textContent = 'Error loading file';
-                    });
+                    fetch(fileUrl)
+                        .then((response) => response.text())
+                        .then((text) => {
+                            p.textContent = text;
+                        })
+                        .catch((err) => {
+                            console.error('Error loading file:', err);
+                            p.textContent = 'Error loading file';
+                        });
                 }
                 closeBtn.onclick = () => {
                     filePreview.hidden = true;
@@ -406,7 +421,7 @@
             }
 
             function createIcon(iconName) {
-                let icon
+                let icon;
                 switch (iconName) {
                     case 'directory':
                         icon = iconDirectory.cloneNode(true);
@@ -425,10 +440,14 @@
             }
 
             function isImage(filename) {
-                return imageExtensions.some(ext => filename.endsWith(ext));
+                return imageExtensions.some((ext) => filename.endsWith(ext));
             }
             function isAudio(filename) {
-                return filename.endsWith('.mp3') || filename.endsWith('.wav') || filename.endsWith('.ogg');
+                return (
+                    filename.endsWith('.mp3') ||
+                    filename.endsWith('.wav') ||
+                    filename.endsWith('.ogg')
+                );
             }
             function isDirectory(filename) {
                 return filename.endsWith('/');
@@ -443,7 +462,7 @@
                 } else {
                     url.searchParams.delete('p');
                 }
-                window.history.pushState({}, "", url);
+                window.history.pushState({}, '', url);
             }
 
             function parsePathFromQuery() {

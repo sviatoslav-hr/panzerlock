@@ -1,4 +1,4 @@
-# Tanks 1990
+# Panzerlock
 
 Panzerlock - game inspired by original Battle City.
 [Play online](https://sviatoslav-hr.github.io/panzerlock/)
