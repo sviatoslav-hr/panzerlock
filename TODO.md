@@ -3,11 +3,16 @@
 ## DOING
 
 ## NEXT TODO
+- [ ] Remake shields
+    - Instead of timer based (except the spawn shields maybe??), the shield should be charge based (e.g. each charge has 50 hp and you can get up to 4 charges)
+    - Draw shield charges overlayed as the hp bar is drawn.
+- [ ] Rebalance later levels by added shield charges for enemies.
+- [ ] Decide if it still makes sense to have spawn timer based shield or no?
 - [ ] Add animation/SFX to room door opening to hint player that's where he needs to go next
-- [ ] Figure out better level progression (enemies and upgrades)
 
 ## SHOULD BE FIXED
-- [ ] Add healing animation for 'above' hp bars.s
+- [ ] Pickup icons are not drawn perfectly - sometimes you can see a line of the next icon.
+- [ ] Healing animation missing for 'above' hp bars.
 - [ ] **Movement improvement!** (Choose one approach)
     a. Change movement to move only by fractions of cells (e.g. 1/16 of a cell)
         This will be easier to pathfind. And also will *may* the UX by fixing the issue with the player being able to pass through blocks.
