@@ -1,4 +1,6 @@
 editorconfig = true
+useTabs = false
+tabWidth = 4
 bracketSpacing = false
 singleQuote = true
 printWidth = 100

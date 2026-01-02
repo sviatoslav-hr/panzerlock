@@ -6,11 +6,12 @@ import {spawnProjectile} from '#/entity/projectile';
 import {isEnemyTank, isPlayerTank, PlayerTank, Tank} from '#/entity/tank';
 import {
     chooseEnemyDirection,
+    ENEMY_SPAWN_FREEZE_DELAY,
     hanldeOversteppedEnemyPathPoint,
     respawnEnemy,
     tryRestartEnemyPathfinding,
 } from '#/entity/tank/enemy';
-import {SHIELD_SPAWN_DURATION} from '#/entity/tank/generation';
+import {SHIELD_MAX_CHARGES, SHIELD_SPAWN_DURATION} from '#/entity/tank/generation';
 import {Direction} from '#/math/direction';
 import {Duration} from '#/math/duration';
 import {Vector2Like} from '#/math/vector';
@@ -29,15 +30,16 @@ export function simulateAllTanks(dt: Duration, state: GameState): void {
 
         if (tank.dead) {
             if (isEnemyTank(tank) && tank.shouldRespawn && waveHasRespawnPlace(currentWave)) {
-                tank.respawnDelay.sub(dt).max(0);
-                if (!tank.respawnDelay.positive) {
-                    respawnEnemy(tank, state);
-                }
+                respawnEnemy(tank, state);
             }
             continue;
         }
 
         if (isEnemyTank(tank)) {
+            if (tank.spawnFreezeTimer.positive) {
+                tank.spawnFreezeTimer.sub(dt).max(0);
+                continue;
+            }
             chooseEnemyDirection(tank, state, dt);
         }
 
@@ -86,7 +88,7 @@ export function initTank(tank: Tank): void {
     tank.health = tank.schema.maxHealth;
     tank.prevHealth = tank.health;
     tank.collided = false;
-    tank.damageMult = 1;
+    tank.damageIncreasedTimes = 0;
     tank.speedMult = 1;
     tank.reloadMult = 1;
     tank.shootingDelay.setMilliseconds(tank.schema.reloadTime.milliseconds);
@@ -95,17 +97,17 @@ export function initTank(tank: Tank): void {
         assert(tank.shouldRespawn); // Enemy should be initialized only during respawn
         tank.shouldRespawn = false;
         tank.targetPath = [];
-        tank.respawnDelay.setMilliseconds(0);
-        tank.pathfindDelay.setMilliseconds(0);
+        tank.pathfindRestartDelay.setMilliseconds(0);
+        tank.spawnFreezeTimer.setFrom(ENEMY_SPAWN_FREEZE_DELAY);
+        activateTankShield(tank, ENEMY_SPAWN_FREEZE_DELAY);
     } else if (isPlayerTank(tank)) {
         tank.x = -tank.width / 2;
         tank.y = -tank.height / 2;
         tank.direction = Direction.NORTH;
         tank.velocity = 0;
         tank.survivedFor.milliseconds = 0;
+        activateTankShield(tank, SHIELD_SPAWN_DURATION);
     }
-
-    activateTankShield(tank);
 }
 
 export function changePlayerDirection(tank: PlayerTank, direction: Direction | null): void {
@@ -127,6 +129,11 @@ export function damageTank(tank: Tank, damage: number, state: GameState): boolea
         return false;
     }
     if (tank.hasShield) {
+        if (tank.isShieldBreakable) {
+            // NOTE: Any damage breaks one shield charge.
+            tank.shieldChangesCount = Math.max(0, tank.shieldChangesCount - 1);
+        }
+        soundEvent(state.sounds, tank.bot ? 'enemy-damaged' : 'player-damaged');
         return false;
     }
     tank.prevHealth = tank.health;
@@ -152,7 +159,7 @@ export function damageTank(tank: Tank, damage: number, state: GameState): boolea
 
 export function restoreTankHealth(tank: Tank, amount: number): boolean {
     assert(!tank.dead);
-    assert(tank.needsHealing);
+    if (!tank.needsHealing) return false;
     tank.prevHealth = tank.health;
     tank.health = Math.min(tank.schema.maxHealth, tank.health + amount);
     // TODO: Look #SmoothHealthAnimation
@@ -160,34 +167,48 @@ export function restoreTankHealth(tank: Tank, amount: number): boolean {
     return true;
 }
 
-export function activateTankShield(tank: Tank, duration: Duration = SHIELD_SPAWN_DURATION): void {
-    if (tank.hasShield) {
-        tank.shieldTimer.add(duration);
+export function activateTankShield(tank: Tank, value: Duration | number): boolean {
+    const newShield = !tank.hasShield;
+    let chargeUsed = false;
+    // NOTE: If there is a timer, then the shield should not be breakable.
+    if (typeof value === 'number') {
+        const shieldCharges = Math.min(tank.shieldChangesCount + value, SHIELD_MAX_CHARGES);
+        if (shieldCharges > tank.shieldChangesCount) {
+            chargeUsed = true;
+        }
+        tank.shieldChangesCount = shieldCharges;
     } else {
-        tank.hasShield = true;
-        tank.shieldTimer.setFrom(duration);
+        tank.shieldTimer.add(value);
+    }
+    if (newShield) {
         updateTankShieldBoundary(tank);
+    }
+    return chargeUsed;
+}
+
+export function deactivateTankShield(tank: Tank): void {
+    if (tank.hasShield) {
+        tank.shieldTimer.milliseconds = 0;
+        tank.shieldChangesCount = 0;
     }
 }
 
 function simulateTankShield(tank: Tank, dt: Duration): void {
     tank.shieldSprite.update(dt);
-
-    if (tank.shieldTimer.positive || tank.hasShield) {
+    if (tank.shieldTimer.positive) {
         tank.shieldTimer.sub(dt).max(0);
-        if (!tank.shieldTimer.positive) {
-            tank.hasShield = false;
-        }
+    }
+    if (tank.hasShield) {
         updateTankShieldBoundary(tank);
     }
 }
 
 function updateTankShieldBoundary(tank: Tank): void {
-    const padding = 3;
-    tank.shieldBoundary.x = tank.x - padding;
-    tank.shieldBoundary.y = tank.y - padding;
-    tank.shieldBoundary.width = tank.width + padding * 2;
-    tank.shieldBoundary.height = tank.height + padding * 2;
+    const PADDING = 3;
+    tank.shieldBoundary.x = tank.x - PADDING;
+    tank.shieldBoundary.y = tank.y - PADDING;
+    tank.shieldBoundary.width = tank.width + PADDING * 2;
+    tank.shieldBoundary.height = tank.height + PADDING * 2;
 }
 
 function simulateTankMovement(dt: Duration, tank: Tank) {
@@ -214,9 +235,23 @@ export function tryTriggerTankShooting(tank: Tank, state: GameState): void {
         // NOTE: Play sounds only during active game-play to not pollute the other states
         soundEvent(state.sounds, tank.bot ? 'enemy-shooting' : 'player-shooting');
     }
-    const damage = Math.round(tank.schema.damage * tank.damageMult);
+    const damage = calcTankDamage(tank);
     spawnProjectile(state, tank.id, getTankShootingOrigin(tank), tank.direction, damage);
     tank.shootingDelay.setMilliseconds(tank.schema.reloadTime.milliseconds / tank.reloadMult);
+}
+
+function calcTankDamage(tank: Tank): number {
+    const A = 97.6;
+    const B = 7.2;
+    const P = 2.4;
+    const M = 0.1;
+    const effectiveDamageIncrease = getDiminishingReturn(tank.damageIncreasedTimes, A, B, P);
+    const damageMult = 1 + M * effectiveDamageIncrease;
+    return tank.schema.damage * damageMult;
+}
+
+function getDiminishingReturn(x: number, a: number, b: number, p: number): number {
+    return a * (1 - Math.exp(-Math.pow(x / b, p)));
 }
 
 function getTankShootingOrigin(tank: Tank): Vector2Like {

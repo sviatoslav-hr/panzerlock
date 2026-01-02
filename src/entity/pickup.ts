@@ -2,10 +2,9 @@ import {CELL_SIZE} from '#/const';
 import {Entity, findIntersectingAmong, isIntesecting} from '#/entity/core';
 import {type Tank} from '#/entity/tank';
 import {
-    DAMAGE_INCREASE_MULT,
     RELOAD_INCREASE_MULT,
     RESTORE_HP_AMOUNT,
-    SHIELD_PICKUP_DURATION,
+    SHIELD_PICKUP_CHARGES,
     SPEED_INCREASE_MULT,
 } from '#/entity/tank/generation';
 import {activateTankShield, restoreTankHealth} from '#/entity/tank/simulation';
@@ -114,22 +113,21 @@ function applyPickup(pickup: Pickup, tank: Tank): void {
     assert(!tank.dead);
     let skipped = false;
     switch (pickup.type) {
-        case PickupType.REPAIR:
-            if (tank.needsHealing) {
-                restoreTankHealth(tank, RESTORE_HP_AMOUNT);
-            } else {
-                skipped = true;
-            }
+        case PickupType.REPAIR: {
+            const repairUsed = restoreTankHealth(tank, RESTORE_HP_AMOUNT);
+            skipped = !repairUsed;
             break;
-        case PickupType.SHIELD:
-            // NOTE: If tank already has shield, prolong it instead of overwriting.
-            activateTankShield(tank, SHIELD_PICKUP_DURATION);
+        }
+        case PickupType.SHIELD: {
+            const chargeUsed = activateTankShield(tank, SHIELD_PICKUP_CHARGES);
+            skipped = !chargeUsed;
             break;
+        }
         case PickupType.SPEED_BOOST:
             tank.speedMult += SPEED_INCREASE_MULT;
             break;
         case PickupType.DAMAGE_BOOST:
-            tank.damageMult += DAMAGE_INCREASE_MULT;
+            tank.damageIncreasedTimes += 1; // DAMAGE_INCREASE_MULT;
             break;
         case PickupType.RELOAD_BOOST:
             tank.reloadMult += RELOAD_INCREASE_MULT;
@@ -153,6 +151,7 @@ export function generatePickups(room: Room, state: GameState): void {
     const maxYRel = maxY / CELL_SIZE;
 
     const selectedPickups = random.selectMany(allPickupTypes, 2, 4);
+    // const selectedPickups = random.selectMany(allPickupTypes, 2, 4).concat(PickupType.SHIELD);
     // const selectedPickups = allPickupTypes.slice();
 
     let pickupType: PickupType | undefined;

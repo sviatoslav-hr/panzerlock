@@ -1,16 +1,20 @@
 import {Color} from '#/color';
 import {CELL_SIZE} from '#/const';
 import {EnemyTank, isEnemyTank, isPlayerTank, PlayerTank, Tank} from '#/entity/tank';
+import {SHIELD_MAX_CHARGES} from '#/entity/tank/generation';
 import {Renderer} from '#/renderer';
 import {roomSizeInCells} from '#/world/room';
 
 export function drawAllTankModels(renderer: Renderer, tanks: Tank[]): void {
     for (const tank of tanks) {
         if (tank.dead) continue;
+        const freezed = isEnemyTank(tank) && tank.spawnFreezeTimer.positive;
+        if (freezed) renderer.setGlobalAlpha(0.5);
         tank.sprite.draw(renderer, tank, tank.direction);
         if (tank.hasShield) {
             tank.shieldSprite.draw(renderer, tank.shieldBoundary);
         }
+        if (freezed) renderer.setGlobalAlpha(1);
     }
 }
 
@@ -18,8 +22,13 @@ export function drawTanksFloatUI(renderer: Renderer, tanks: Tank[]): void {
     for (const tank of tanks) {
         // NOTE: Draw health bar animation even if dead for dramatic effect.
         // NOTE: Draw hp bar only if the tank is not full health.
-        if ((!tank.dead || tank.healthAnimation.active) && tank.health < tank.schema.maxHealth) {
-            drawTankHealthBarAbove(renderer, tank);
+        let yOffset = -FLOAT_BAR_Y_OFFSET / renderer.camera.scale;
+        // NOTE: Only draw shield if its not timer based to hint that it's not breakable.
+        if (!tank.dead && tank.shieldChangesCount && !tank.shieldTimer.positive) {
+            yOffset += drawTankShieldFloatBar(renderer, tank, yOffset) - tank.y;
+        }
+        if (tank.healthAnimation.active || !tank.dead) {
+            yOffset += drawTankHealthFloatBar(renderer, tank, yOffset) - tank.y;
         }
     }
 }
@@ -53,24 +62,104 @@ export function drawAllTanksDevUI(renderer: Renderer, tanks: Tank[]): void {
     }
 }
 
-function drawTankHealthBarAbove(renderer: Renderer, tank: Tank) {
-    const barWidth = tank.width * 0.9;
-    // NOTE: Draw health bar in camera size, since it's a UI element and it should not scale.
-    const barHeight = 3 / renderer.camera.scale;
-    const barOffset = 6 / renderer.camera.scale;
-    const barX = tank.x + (tank.width - barWidth) / 2;
-    const barY = tank.y - barHeight - barOffset;
-    renderer.setFillColor(Color.GREEN_DARKEST);
-    renderer.fillRect(barX, barY, barWidth, barHeight);
-    let hpFraction = tank.health / tank.schema.maxHealth || 0;
+function getTankHealthFractionAnimated(tank: Tank): number {
+    const fromHealth = tank.prevHealth;
+    const toHealth = tank.health;
+    let animatedHpFraction = toHealth / tank.schema.maxHealth || 0;
     if (!tank.healthAnimation.finished) {
-        const healthLostFraction = Math.abs(tank.health - tank.prevHealth) / tank.schema.maxHealth;
-        hpFraction += (1 - tank.healthAnimation.progress) * healthLostFraction;
+        const healthDiff = toHealth - fromHealth;
+        const animatedHealth = fromHealth + healthDiff * tank.healthAnimation.progress;
+        animatedHpFraction = animatedHealth / tank.schema.maxHealth || 0;
     }
-    if (hpFraction) {
-        renderer.setFillColor(Color.GREEN);
-        renderer.fillRect(barX, barY, barWidth * hpFraction, barHeight);
+    return animatedHpFraction;
+}
+
+const FLOAT_BAR_HEIGHT = 3;
+const FLOAT_BAR_Y_OFFSET = 6;
+const FLOAT_BAR_Y_PADDING = 3;
+const FLOAT_BAR_WIDTH_SCALE = 0.9;
+const FLOAT_BAR_CHUNK_PADDING_SCALE = 0.02;
+
+function drawTankHealthFloatBar(renderer: Renderer, tank: Tank, offsetY = 0): number {
+    const value = getTankHealthFractionAnimated(tank);
+    if (tank.healthAnimation.finished && tank.health === tank.schema.maxHealth) {
+        renderer.setGlobalAlpha(0.1);
     }
+    const HP_BAR_CHUNK_SIZE = 25;
+    const hpBarChunks = Math.ceil(tank.schema.maxHealth / HP_BAR_CHUNK_SIZE);
+    const endX = drawTankFloatBar(
+        renderer,
+        tank,
+        value,
+        hpBarChunks,
+        Color.GREEN,
+        Color.GREEN_DARKEST,
+        offsetY,
+    );
+    renderer.setGlobalAlpha(1);
+    return endX;
+}
+
+function drawTankShieldFloatBar(renderer: Renderer, tank: Tank, offsetY = 0): number {
+    const value = tank.shieldChangesCount / SHIELD_MAX_CHARGES || 0;
+    renderer.setGlobalAlpha(0.7);
+    const endX = drawTankFloatBar(
+        renderer,
+        tank,
+        value,
+        SHIELD_MAX_CHARGES,
+        Color.BLUE_PRIMARY,
+        Color.BLUE_DARKEST,
+        offsetY,
+    );
+    renderer.setGlobalAlpha(1);
+    return endX;
+}
+
+function drawTankFloatBar(
+    renderer: Renderer,
+    tank: Tank,
+    value: number,
+    maxChunksCount: number,
+    fgColor: string,
+    bgColor: string,
+    offsetY = 0,
+): number {
+    assert(value >= 0 && value <= 1);
+    const barWidth = tank.width * FLOAT_BAR_WIDTH_SCALE;
+    // NOTE: Draw health bar in camera size, since it's a UI element and it should not scale.
+    const barHeight = FLOAT_BAR_HEIGHT / renderer.camera.scale;
+    const barYOffset = FLOAT_BAR_Y_PADDING / renderer.camera.scale;
+    const chunkPadding = barWidth * FLOAT_BAR_CHUNK_PADDING_SCALE;
+    const barY = tank.y - barHeight - barYOffset + offsetY;
+    const barX = tank.x + (tank.width - barWidth) / 2;
+
+    const chunksCount = Math.ceil(value / (1 / maxChunksCount));
+    const totalChunksWidth = barWidth - chunkPadding * (chunksCount - 1);
+    const chunkMaxWidth = totalChunksWidth / maxChunksCount;
+    const fractionPerChunk = 1 / maxChunksCount;
+    let chunkWSum = 0;
+    for (let i = 0; i < maxChunksCount; i++) {
+        const chunkX = barX + i * (chunkMaxWidth + chunkPadding);
+        const chunkFractionStart = fractionPerChunk * i;
+        const chunkFractionEndMax = fractionPerChunk * (i + 1);
+        // 0..chunkFractionSize
+        let chunkFraction = Math.max(0, Math.min(value, chunkFractionEndMax) - chunkFractionStart);
+        // 0..1
+        chunkFraction *= maxChunksCount;
+        assert(chunkFraction >= 0 && chunkFraction <= 1);
+        let chunkWidth = chunkMaxWidth;
+        if (chunkFraction < 1) {
+            renderer.setFillColor(bgColor);
+            renderer.fillRect(chunkX, barY, chunkWidth, barHeight);
+        }
+        chunkWSum += chunkWidth * chunkFraction;
+        renderer.setFillColor(fgColor);
+        renderer.fillRect(chunkX, barY, chunkWidth * chunkFraction, barHeight);
+    }
+    assert(barWidth - chunkWSum > 0);
+    renderer.setGlobalAlpha(1);
+    return barY + barHeight;
 }
 
 function drawPlayerHealthBar(renderer: Renderer, player: PlayerTank): void {
@@ -87,14 +176,7 @@ function drawPlayerHealthBar(renderer: Renderer, player: PlayerTank): void {
     const barY = (renderer.canvas.height - barHeight) / 2;
     const barX = paddingX;
 
-    const fromHealth = player.prevHealth;
-    const toHealth = player.health;
-    let animatedHpFraction = toHealth / player.schema.maxHealth || 0;
-    if (!player.healthAnimation.finished) {
-        const healthDiff = toHealth - fromHealth;
-        const animatedHealth = fromHealth + healthDiff * player.healthAnimation.progress;
-        animatedHpFraction = animatedHealth / player.schema.maxHealth || 0;
-    }
+    const animatedHpFraction = getTankHealthFractionAnimated(player);
 
     {
         const bgBarHeight = barHeight * (1 - animatedHpFraction);

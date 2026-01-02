@@ -4,12 +4,12 @@ import {Duration} from '#/math/duration';
 import type {Renderer} from '#/renderer';
 import {Sprite} from '#/renderer/sprite';
 
-const tankPartKinds = ['light', 'medium', 'heavy'] as const;
-export type TankPartKind = (typeof tankPartKinds)[number];
+const tankKinds = ['light', 'medium', 'heavy'] as const;
+export type TankKind = (typeof tankKinds)[number];
 
 export interface TankSchema {
-    turret: TankPartKind;
-    body: TankPartKind;
+    turret: TankKind;
+    body: TankKind;
     damage: number;
     reloadTime: Duration;
     maxHealth: number;
@@ -17,7 +17,7 @@ export interface TankSchema {
     topSpeedReachTime: Duration;
 }
 
-export function makeTankSchema(bot: boolean, kind: TankPartKind): TankSchema {
+export function makeTankSchema(bot: boolean, kind: TankKind): TankSchema {
     if (bot) {
         return {
             turret: kind,
@@ -41,23 +41,24 @@ export function makeTankSchema(bot: boolean, kind: TankPartKind): TankSchema {
     };
 }
 
-export const RESTORE_HP_AMOUNT = 100; // full hp
+export const RESTORE_HP_AMOUNT = 200; // full hp
 export const SPEED_INCREASE_MULT = 0.1; // 10% speed increase per power-up
-export const DAMAGE_INCREASE_MULT = 0.35; // 35% damage increase per power-up
-export const RELOAD_INCREASE_MULT = 0.1; // 10% reload time decrease per power-up
+export const RELOAD_INCREASE_MULT = 0.15; // 10% reload time decrease per power-up
+export const SHIELD_MAX_CHARGES = 6;
+export const SHIELD_PICKUP_CHARGES = 2;
 export const SHIELD_PICKUP_DURATION = Duration.milliseconds(10000);
 export const SHIELD_SPAWN_DURATION = Duration.milliseconds(1500);
 
 interface TankAttributes {
-    maxHealthEnemy: Record<TankPartKind, number>;
+    maxHealthEnemy: Record<TankKind, number>;
     maxHealthPlayer: number;
-    topSpeedEnemy: Record<TankPartKind, number>;
+    topSpeedEnemy: Record<TankKind, number>;
     topSpeedPlayer: number;
     topSpeedReachMillisEnemy: number;
     topSpeedReachMillisPlayer: number;
-    damageEnemy: Record<TankPartKind, number>;
+    damageEnemy: Record<TankKind, number>;
     damagePlayer: number;
-    reloadMillisEnemy: Record<TankPartKind, number>;
+    reloadMillisEnemy: Record<TankKind, number>;
     reloadMillisPlayer: number;
 }
 
@@ -68,9 +69,9 @@ interface TankAttributes {
 // 4 for light enemy, 3 for medium enemy, 2 for heavy enemy
 const tankAttributes: TankAttributes = {
     maxHealthEnemy: {
-        light: 50,
+        light: 40,
         medium: 100,
-        heavy: 150,
+        heavy: 160,
     },
     maxHealthPlayer: 100,
     topSpeedEnemy: {
@@ -87,7 +88,7 @@ const tankAttributes: TankAttributes = {
         medium: 35,
         heavy: 50,
     },
-    damagePlayer: 35,
+    damagePlayer: 37,
     reloadMillisEnemy: {
         light: 1000,
         medium: 1500,
@@ -96,7 +97,7 @@ const tankAttributes: TankAttributes = {
     reloadMillisPlayer: 1200,
 };
 
-function makeTankTurretSprite(keyPrefix: string, kind: TankPartKind): Sprite<'static'> {
+function makeTankTurretSprite(keyPrefix: string, kind: TankKind): Sprite<'static'> {
     switch (kind) {
         case 'light':
             return new Sprite({
@@ -125,7 +126,7 @@ function makeTankTurretSprite(keyPrefix: string, kind: TankPartKind): Sprite<'st
     }
 }
 
-function makeTankBodySprite(keyPrefix: string, kind: TankPartKind, bot: boolean): Sprite<'moving'> {
+function makeTankBodySprite(keyPrefix: string, kind: TankKind, bot: boolean): Sprite<'moving'> {
     return new Sprite({
         key: `${keyPrefix}_body_${kind}`,
         frameWidth: 64,
@@ -137,7 +138,7 @@ function makeTankBodySprite(keyPrefix: string, kind: TankPartKind, bot: boolean)
     });
 }
 
-const turretYOffsets: Record<TankPartKind, number> = {
+const turretYOffsets: Record<TankKind, number> = {
     light: 10,
     medium: 11,
     heavy: 8,

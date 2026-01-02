@@ -9,6 +9,8 @@
 - [ ] Rebalance later levels by added shield charges for enemies.
 - [ ] Decide if it still makes sense to have spawn timer based shield or no?
 - [ ] Add animation/SFX to room door opening to hint player that's where he needs to go next
+- [ ] Add specific should effect for breaking a shield instead of reusing the same hit effect.
+- [ ] A make "Game Over" a 'dramatic' red text.
 
 ## SHOULD BE FIXED
 - [ ] Pickup icons are not drawn perfectly - sometimes you can see a line of the next icon.

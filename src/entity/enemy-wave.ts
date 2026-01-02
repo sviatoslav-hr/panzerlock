@@ -1,10 +1,10 @@
 import {EntityId} from '#/entity/id';
 import {EnemyTank} from '#/entity/tank';
-import {TankPartKind} from '#/entity/tank/generation';
+import {TankKind} from '#/entity/tank/generation';
 
 function newEnemyWave(
     // NOTE: Waves are being reused per each restart, so we want to keep the original order of enemies.
-    expectedEnemies: readonly TankPartKind[],
+    expectedEnemies: readonly TankKind[],
     enemyLimitAtOnce: number,
 ): EnemyWave {
     assert(enemyLimitAtOnce > 0);
@@ -21,7 +21,7 @@ export interface EnemyWave {
     aliveEnemies: EntityId[];
     enemyRespawnQueue: EntityId[];
     expectedEnemyIndex: number;
-    readonly expectedEnemies: readonly TankPartKind[];
+    readonly expectedEnemies: readonly TankKind[];
     readonly enemyLimitAtOnce: number;
 }
 
@@ -54,7 +54,7 @@ export function acknowledgeEnemyDied(wave: EnemyWave, enemyId: EntityId): void {
     }
 }
 
-export function queueEnemy(wave: EnemyWave, enemy: EnemyTank, enemyKind?: TankPartKind): void {
+export function queueEnemy(wave: EnemyWave, enemy: EnemyTank, enemyKind?: TankKind): void {
     if (!enemyKind) {
         const expectedKind = wave.expectedEnemies[wave.expectedEnemyIndex];
         if (wave.expectedEnemyIndex < wave.expectedEnemies.length) {
@@ -73,7 +73,7 @@ export function resetWave(wave: EnemyWave): void {
 }
 
 interface EnemyWaveConfig {
-    enemies: TankPartKind[]; // rename to `queue`?
+    enemies: TankKind[]; // rename to `queue`?
     limitAtOnce?: number; // By default inherits from prev room
 }
 
@@ -82,25 +82,30 @@ export const wavesPerRoom = makeWaves(
     // {enemies: ['light', 'medium', 'heavy'], limitAtOnce: 3}, // NOTE: This is a test wave, only for dev purposes.
     // NOTE: Start with one medium tank: not overwhelming with many enemies, but also not too easy to kill.
     {enemies: ['light'], limitAtOnce: 1},
-    {enemies: ['light', 'light']},
     {enemies: ['light', 'light'], limitAtOnce: 2}, // NOTE: In the next room we teach player that he can play against multiple enemies at once.
-    {enemies: ['light', 'light', 'light']}, // NOTE: In this room we show that more enemies can respawn.
-    {enemies: ['light', 'medium', 'light']},
-    {enemies: ['light', 'medium', 'medium']},
-    {enemies: ['medium', 'medium', 'medium']},
+    {enemies: ['light', 'medium']},
+    {enemies: ['light', 'medium', 'light']}, // NOTE: In this room we show that more enemies can respawn.
     {enemies: ['light', 'medium', 'light', 'medium']},
     {enemies: ['light', 'medium', 'light', 'medium'], limitAtOnce: 3},
-    {enemies: ['light', 'light', 'medium', 'light', 'light'], limitAtOnce: 3},
-    {enemies: ['light', 'light', 'medium', 'light', 'medium'], limitAtOnce: 3},
+    {enemies: ['light', 'light', 'medium', 'light', 'light']},
+    {enemies: ['light', 'light', 'medium', 'light', 'medium']},
     {enemies: ['light', 'light', 'heavy', 'light', 'medium']},
     {enemies: ['light', 'medium', 'heavy', 'light', 'medium']},
     {enemies: ['light', 'light', 'heavy', 'medium', 'medium']},
     {enemies: ['light', 'medium', 'heavy', 'medium', 'light', 'medium']},
     {enemies: ['light', 'medium', 'heavy', 'light', 'medium', 'heavy']},
     {enemies: ['light', 'light', 'medium', 'heavy', 'light', 'medium', 'heavy'], limitAtOnce: 4},
-    {enemies: ['light', 'medium', 'medium', 'heavy', 'medium', 'medium', 'heavy']},
-    {enemies: ['light', 'medium', 'light', 'medium', 'light', 'medium', 'light', 'medium']},
-    {enemies: ['heavy', 'heavy', 'light', 'medium', 'light', 'light', 'medium', 'medium']},
+    {enemies: ['light', 'medium', 'medium', 'heavy', 'medium', 'medium', 'heavy', 'light']},
+    // prettier-ignore
+    {enemies: ['light', 'medium', 'light', 'medium', 'light', 'medium', 'light', 'medium', 'light', 'medium']},
+    // prettier-ignore
+    {enemies: ['light', 'medium', 'heavy', 'light', 'medium', 'heavy', 'light', 'medium', 'heavy', 'light', 'medium', 'heavy']},
+    // prettier-ignore
+    {enemies: ['heavy', 'heavy', 'light', 'medium', 'light', 'light', 'medium', 'medium'], limitAtOnce: 5},
+    // prettier-ignore
+    {enemies: ['heavy', 'medium', 'light', 'heavy', 'medium', 'heavy', 'light', 'medium', 'heavy', 'light', 'medium', 'heavy']},
+    // prettier-ignore
+    {enemies: ['heavy', 'heavy', 'medium', 'light', 'heavy', 'heavy', 'medium', 'light', 'heavy', 'heavy', 'medium', 'light']},
 );
 
 function makeWaves(...configs: EnemyWaveConfig[]): EnemyWave[] {

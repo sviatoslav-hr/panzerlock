@@ -5,7 +5,7 @@ import {newEntityId} from '#/entity/id';
 import {
     createTankSpriteGroup,
     makeTankSchema,
-    TankPartKind,
+    TankKind,
     TankSchema,
     TankSpriteGroup,
 } from '#/entity/tank/generation';
@@ -31,7 +31,6 @@ export abstract class Tank extends Entity {
     width = CELL_SIZE * 0.8;
     height = CELL_SIZE * 0.8;
     dead = true;
-    hasShield = false;
     direction = Direction.NORTH;
     aliveForMs = 0;
 
@@ -40,10 +39,11 @@ export abstract class Tank extends Entity {
     moving = false;
     collided = false;
     speedMult = 1;
-    damageMult = 1;
+    damageIncreasedTimes = 0;
     reloadMult = 1;
 
     shieldTimer = Duration.zero();
+    shieldChangesCount = 0;
     shootingDelay = Duration.milliseconds(0);
     prevHealth = 0;
     healthAnimation = new Animation(Duration.milliseconds(500), easeOut).end();
@@ -70,7 +70,15 @@ export abstract class Tank extends Entity {
         return this.health < this.schema.maxHealth;
     }
 
-    changeKind(kind: TankPartKind): void {
+    get hasShield(): boolean {
+        return this.shieldChangesCount > 0 || this.shieldTimer.positive;
+    }
+
+    get isShieldBreakable(): boolean {
+        return !this.shieldTimer.positive;
+    }
+
+    changeKind(kind: TankKind): void {
         const schema = makeTankSchema(this.bot, kind);
         this.schema = schema;
         this.sprite = createTankSpriteGroup(this.bot, schema);
@@ -86,7 +94,7 @@ export class EnemyTank extends Tank implements Entity {
     shouldRespawn = false;
     moving = true;
     targetPath: Vector2Like[] = [];
-    respawnDelay = Duration.zero();
+    spawnFreezeTimer = Duration.zero();
     pathfindDelay = Duration.zero();
     pathfindRestartDelay = Duration.zero();
 }
