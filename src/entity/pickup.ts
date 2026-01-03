@@ -9,20 +9,21 @@ import {
 } from '#/entity/tank/generation';
 import {activateTankShield, restoreTankHealth} from '#/entity/tank/simulation';
 import {Rect, scaleRectCentered} from '#/math';
-import {Duration} from '#/math/duration';
+import type {Duration} from '#/math/duration';
 import {random} from '#/math/rng';
-import {Renderer} from '#/renderer';
+import type {Renderer} from '#/renderer';
 import {Sprite} from '#/renderer/sprite';
-import {GameState} from '#/state';
-import {Room} from '#/world/room';
+import type {GameState} from '#/state';
+import type {Room} from '#/world/room';
 
-export enum PickupType {
-    REPAIR = 'repair',
-    RELOAD_BOOST = 'reload-boost',
-    SHIELD = 'shield',
-    DAMAGE_BOOST = 'damage-boost',
-    SPEED_BOOST = 'speed-boost',
-}
+export const PickupType = {
+    REPAIR: 'repair',
+    RELOAD_BOOST: 'reload-boost',
+    SHIELD: 'shield',
+    DAMAGE_BOOST: 'damage-boost',
+    SPEED_BOOST: 'speed-boost',
+} as const;
+export type PickupType = (typeof PickupType)[keyof typeof PickupType];
 
 const allPickupTypes = [
     PickupType.REPAIR,

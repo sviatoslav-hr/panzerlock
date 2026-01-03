@@ -1,6 +1,5 @@
 import {CELL_SIZE} from '#/const';
 import {Block, generateBlocks} from '#/entity/block';
-import {wavesPerRoom} from '#/entity/enemy-wave';
 import {generatePickups} from '#/entity/pickup';
 import {Direction} from '#/math/direction';
 import {random} from '#/math/rng';
@@ -17,8 +16,9 @@ import {
     type WorldNodeKey,
 } from '#/world/graph';
 import {newRoom, Room, roomSizeInCells} from '#/world/room';
+import {TOTAL_LEVELS} from '#/levels';
 
-export const MAX_ROOMS_COUNT = wavesPerRoom.length;
+export const MAX_ROOMS_COUNT = TOTAL_LEVELS;
 
 // TODO: Figure out generation algorithm that would avoid overlapping rooms
 export function createRoomsFromGraph(graph: WorldGraph, state: GameState): Room[] {

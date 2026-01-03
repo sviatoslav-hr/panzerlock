@@ -2,8 +2,9 @@ import {CELL_SIZE} from '#/const';
 import {PlayerTank} from '#/entity';
 import {Block} from '#/entity/block';
 import {Entity, isIntesecting} from '#/entity/core';
-import {EnemyWave, isWaveCleared, resetWave, wavesPerRoom} from '#/entity/enemy-wave';
+import {EnemyWave, isWaveCleared, makeEnemyWave, resetWave} from '#/entity/enemy-wave';
 import {Pickup} from '#/entity/pickup';
+import {levelsPerDepth} from '#/levels';
 import {Rect} from '#/math';
 import {Direction, getDirectionBetween} from '#/math/direction';
 import {Vector2} from '#/math/vector';
@@ -58,8 +59,9 @@ export function newRoom(
         makeNextRoomTransitionRect(position, sizeInCells, nextDir),
     );
     const depth = node.depth;
-    const wave = wavesPerRoom[depth - 1];
-    assert(wave);
+    const level = levelsPerDepth[depth];
+    assert(level, `Level description for depth ${depth} doesn't exist.`);
+    const wave = makeEnemyWave(level);
     // TODO: Clone the wave, just in case. But currently, there shouldn't be any problems with it.
     resetWave(wave);
     // const prevRoomCommonBlocks = prevRooms.flatMap((p) => p.nextRoomCommonBlocks.slice());
