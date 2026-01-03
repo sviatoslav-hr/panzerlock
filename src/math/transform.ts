@@ -1,5 +1,5 @@
-import { toRadians } from '#/math';
-import { Vector2 } from '#/math/vector';
+import {toRadians} from '#/math';
+import {Vector2} from '#/math/vector';
 
 type TransformMatrix = {
     a: number;
