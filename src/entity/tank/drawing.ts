@@ -85,7 +85,7 @@ function drawTankHealthFloatBar(renderer: Renderer, tank: Tank, offsetY = 0): nu
     if (tank.healthAnimation.finished && tank.health === tank.schema.maxHealth) {
         renderer.setGlobalAlpha(0.1);
     }
-    const HP_BAR_CHUNK_SIZE = 25;
+    const HP_BAR_CHUNK_SIZE = 10;
     const hpBarChunks = Math.ceil(tank.schema.maxHealth / HP_BAR_CHUNK_SIZE);
     const endX = drawTankFloatBar(
         renderer,
@@ -138,7 +138,7 @@ function drawTankFloatBar(
     const totalChunksWidth = barWidth - chunkPadding * (chunksCount - 1);
     const chunkMaxWidth = totalChunksWidth / maxChunksCount;
     const fractionPerChunk = 1 / maxChunksCount;
-    let chunkWSum = 0;
+    let chunkWidthSum = 0;
     for (let i = 0; i < maxChunksCount; i++) {
         const chunkX = barX + i * (chunkMaxWidth + chunkPadding);
         const chunkFractionStart = fractionPerChunk * i;
@@ -146,18 +146,17 @@ function drawTankFloatBar(
         // 0..chunkFractionSize
         let chunkFraction = Math.max(0, Math.min(value, chunkFractionEndMax) - chunkFractionStart);
         // 0..1
-        chunkFraction *= maxChunksCount;
-        assert(chunkFraction >= 0 && chunkFraction <= 1);
+        chunkFraction = Math.min(1, chunkFraction * maxChunksCount);
+        assert(chunkFraction >= 0);
         let chunkWidth = chunkMaxWidth;
         if (chunkFraction < 1) {
             renderer.setFillColor(bgColor);
             renderer.fillRect(chunkX, barY, chunkWidth, barHeight);
         }
-        chunkWSum += chunkWidth * chunkFraction;
+        chunkWidthSum += chunkWidth * chunkFraction;
         renderer.setFillColor(fgColor);
         renderer.fillRect(chunkX, barY, chunkWidth * chunkFraction, barHeight);
     }
-    assert(barWidth - chunkWSum > 0);
     renderer.setGlobalAlpha(1);
     return barY + barHeight;
 }

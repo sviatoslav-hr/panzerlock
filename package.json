@@ -1,7 +1,7 @@
 {
     "name": "panzerlock",
     "private": true,
-    "version": "0.4.1",
+    "version": "0.5.0",
     "homepage": "https://sviatoslav-hr.github.io/panzerlock/",
     "type": "module",
     "scripts": {

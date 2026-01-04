@@ -8,37 +8,23 @@ const tankKinds = ['light', 'medium', 'heavy'] as const;
 export type TankKind = (typeof tankKinds)[number];
 
 export interface TankSchema {
-    turret: TankKind;
-    body: TankKind;
+    kind: TankKind;
     damage: number;
     reloadTime: Duration;
     maxHealth: number;
     maxSpeed: number;
-    topSpeedReachTime: Duration;
+    maxSpeedReachTime: Duration;
 }
 
 export function makeTankSchema(bot: boolean, kind: TankKind): TankSchema {
     if (bot) {
-        return {
-            turret: kind,
-            body: kind,
-            damage: tankAttributes.damageEnemy[kind],
-            reloadTime: Duration.milliseconds(tankAttributes.reloadMillisEnemy[kind]),
-            maxHealth: tankAttributes.maxHealthEnemy[kind],
-            maxSpeed: tankAttributes.topSpeedEnemy[kind],
-            topSpeedReachTime: Duration.milliseconds(tankAttributes.topSpeedReachMillisEnemy),
-        };
+        const specs = specsGroup.enemy[kind];
+        assert(kind === specs.kind, 'Enemy schema kind must match');
+        return specs;
     }
-    assert(kind === 'medium', 'Player tanks are always medium kind');
-    return {
-        turret: kind,
-        body: kind,
-        damage: tankAttributes.damagePlayer,
-        reloadTime: Duration.milliseconds(tankAttributes.reloadMillisPlayer),
-        maxHealth: tankAttributes.maxHealthPlayer,
-        maxSpeed: tankAttributes.topSpeedPlayer,
-        topSpeedReachTime: Duration.milliseconds(tankAttributes.topSpeedReachMillisPlayer),
-    };
+    const specs = specsGroup.player;
+    assert(kind === specs.kind, 'Player tanks are always medium kind');
+    return specs;
 }
 
 export const RESTORE_HP_AMOUNT = 200; // full hp
@@ -46,20 +32,13 @@ export const SPEED_INCREASE_MULT = 0.1; // 10% speed increase per power-up
 export const RELOAD_INCREASE_MULT = 0.15; // 10% reload time decrease per power-up
 export const SHIELD_MAX_CHARGES = 6;
 export const SHIELD_PICKUP_CHARGES = 2;
+export const DAMAGE_PICKUP_MULT = 0.3; // 30% damage increase with each pickup
 export const SHIELD_PICKUP_DURATION = Duration.milliseconds(10000);
 export const SHIELD_SPAWN_DURATION = Duration.milliseconds(1500);
 
-interface TankAttributes {
-    maxHealthEnemy: Record<TankKind, number>;
-    maxHealthPlayer: number;
-    topSpeedEnemy: Record<TankKind, number>;
-    topSpeedPlayer: number;
-    topSpeedReachMillisEnemy: number;
-    topSpeedReachMillisPlayer: number;
-    damageEnemy: Record<TankKind, number>;
-    damagePlayer: number;
-    reloadMillisEnemy: Record<TankKind, number>;
-    reloadMillisPlayer: number;
+interface TankSchemaGroup {
+    player: TankSchema;
+    enemy: Record<TankKind, TankSchema>;
 }
 
 // NOTE: Attributes are picked so that:
@@ -67,34 +46,42 @@ interface TankAttributes {
 // 2 for light enemy, 3 for medium enemy, 4-5 for heavy enemy
 // - For an enemy it takes M hits to kill player:
 // 4 for light enemy, 3 for medium enemy, 2 for heavy enemy
-const tankAttributes: TankAttributes = {
-    maxHealthEnemy: {
-        light: 40,
-        medium: 100,
-        heavy: 160,
+const specsGroup: TankSchemaGroup = {
+    player: {
+        kind: 'medium',
+        maxHealth: 50,
+        damage: 12,
+        reloadTime: Duration.milliseconds(1200),
+        // NOTE: Player should be faster because the game feel better this way.
+        maxSpeed: (450 * 1000) / (60 * 60), // in m/s
+        maxSpeedReachTime: Duration.milliseconds(50),
     },
-    maxHealthPlayer: 100,
-    topSpeedEnemy: {
-        light: (360 * 1000) / (60 * 60), // in m/s
-        medium: (300 * 1000) / (60 * 60),
-        heavy: (240 * 1000) / (60 * 60),
+    enemy: {
+        light: {
+            kind: 'light',
+            maxHealth: 30,
+            damage: 10,
+            reloadTime: Duration.milliseconds(1000),
+            maxSpeed: (360 * 1000) / (60 * 60),
+            maxSpeedReachTime: Duration.milliseconds(150),
+        },
+        medium: {
+            kind: 'medium',
+            maxHealth: 50,
+            damage: 17,
+            reloadTime: Duration.milliseconds(1500),
+            maxSpeed: (300 * 1000) / (60 * 60),
+            maxSpeedReachTime: Duration.milliseconds(150),
+        },
+        heavy: {
+            kind: 'heavy',
+            maxHealth: 80,
+            damage: 25,
+            reloadTime: Duration.milliseconds(2500),
+            maxSpeed: (240 * 1000) / (60 * 60),
+            maxSpeedReachTime: Duration.milliseconds(150),
+        },
     },
-    // NOTE: Player should be faster because the game feel better this way.
-    topSpeedPlayer: (450 * 1000) / (60 * 60),
-    topSpeedReachMillisEnemy: 150,
-    topSpeedReachMillisPlayer: 50,
-    damageEnemy: {
-        light: 25,
-        medium: 35,
-        heavy: 50,
-    },
-    damagePlayer: 37,
-    reloadMillisEnemy: {
-        light: 1000,
-        medium: 1500,
-        heavy: 2500,
-    },
-    reloadMillisPlayer: 1200,
 };
 
 function makeTankTurretSprite(keyPrefix: string, kind: TankKind): Sprite<'static'> {
@@ -146,8 +133,8 @@ const turretYOffsets: Record<TankKind, number> = {
 
 export function createTankSpriteGroup(bot: boolean, schema: TankSchema): TankSpriteGroup {
     const keyPrefix = bot ? 'tank_darkgray' : 'tank_green';
-    const turret = makeTankTurretSprite(keyPrefix, schema.turret);
-    const body = makeTankBodySprite(keyPrefix, schema.body, bot);
+    const turret = makeTankTurretSprite(keyPrefix, schema.kind);
+    const body = makeTankBodySprite(keyPrefix, schema.kind, bot);
     return new TankSpriteGroup(turret, body, schema);
 }
 
@@ -168,7 +155,7 @@ export class TankSpriteGroup {
             const turret = this.turret;
             const bodyHeight = this.body.frameHeight - this.body.framePadding * 2;
             const sizeRatio = bodyHeight / boundary.height;
-            const turretYOffset = turretYOffsets[this.schema.turret] / sizeRatio;
+            const turretYOffset = turretYOffsets[this.schema.kind] / sizeRatio;
             const turretWidth = (turret.frameWidth - turret.framePadding * 2) / sizeRatio;
             const turretHeight = (turret.frameHeight - turret.framePadding * 2) / sizeRatio;
             const wDiff = boundary.width - turretWidth;

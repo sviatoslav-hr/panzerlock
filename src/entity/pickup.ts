@@ -151,9 +151,9 @@ export function generatePickups(room: Room, state: GameState): void {
     const maxXRel = maxX / CELL_SIZE;
     const maxYRel = maxY / CELL_SIZE;
 
-    const selectedPickups = random.selectMany(allPickupTypes, 2, 4);
     // const selectedPickups = random.selectMany(allPickupTypes, 2, 4).concat(PickupType.SHIELD);
     // const selectedPickups = allPickupTypes.slice();
+    const selectedPickups = getPickupsForRoom(room);
 
     let pickupType: PickupType | undefined;
     const offset = (CELL_SIZE - PICKUP_SIZE) / 2;
@@ -174,4 +174,20 @@ export function generatePickups(room: Room, state: GameState): void {
         room.pickups.push(pickup);
         selectedPickups.shift();
     }
+}
+
+function getPickupsForRoom(room: Room): PickupType[] {
+    const level = room.wave.level;
+    const randomPickupsPool = level.pickups?.random?.types ?? allPickupTypes;
+    const minPickups = level.pickups?.random?.count ?? 2;
+    const maxPickups = level.pickups?.random?.count ?? 4;
+    const selectedPickups = random.selectMany(randomPickupsPool, minPickups, maxPickups);
+    if (level.pickups?.forced) {
+        selectedPickups.push(...level.pickups?.forced);
+    }
+    return unique(selectedPickups);
+}
+
+function unique<TItem>(arr: TItem[]): TItem[] {
+    return [...new Set(arr)];
 }

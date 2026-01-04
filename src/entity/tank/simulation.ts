@@ -11,7 +11,11 @@ import {
     respawnEnemy,
     tryRestartEnemyPathfinding,
 } from '#/entity/tank/enemy';
-import {SHIELD_MAX_CHARGES, SHIELD_SPAWN_DURATION} from '#/entity/tank/generation';
+import {
+    DAMAGE_PICKUP_MULT,
+    SHIELD_MAX_CHARGES,
+    SHIELD_SPAWN_DURATION,
+} from '#/entity/tank/generation';
 import {Direction} from '#/math/direction';
 import {Duration} from '#/math/duration';
 import {Vector2Like} from '#/math/vector';
@@ -216,7 +220,7 @@ function simulateTankMovement(dt: Duration, tank: Tank) {
     // NOTE: Scale also the stopping time, otherwise the tank is too difficult to control.
     const stoppingTime = STOPPING_TIME.seconds / tank.speedMult;
     const acceleration = tank.moving
-        ? maxSpeed / tank.schema.topSpeedReachTime.seconds
+        ? maxSpeed / tank.schema.maxSpeedReachTime.seconds
         : -tank.velocity / stoppingTime;
 
     tank.lastAcceleration = acceleration;
@@ -240,18 +244,15 @@ export function tryTriggerTankShooting(tank: Tank, state: GameState): void {
     tank.shootingDelay.setMilliseconds(tank.schema.reloadTime.milliseconds / tank.reloadMult);
 }
 
-function calcTankDamage(tank: Tank): number {
-    const A = 97.6;
-    const B = 7.2;
-    const P = 2.4;
-    const M = 0.1;
-    const effectiveDamageIncrease = getDiminishingReturn(tank.damageIncreasedTimes, A, B, P);
-    const damageMult = 1 + M * effectiveDamageIncrease;
-    return tank.schema.damage * damageMult;
+function scaleDamage(base: number, mult: number, level: number): number {
+    let damage = base;
+    for (let i = 0; i < level; i++) {
+        damage *= 1 + mult;
+    }
+    return damage;
 }
-
-function getDiminishingReturn(x: number, a: number, b: number, p: number): number {
-    return a * (1 - Math.exp(-Math.pow(x / b, p)));
+function calcTankDamage(tank: Tank): number {
+    return scaleDamage(tank.schema.damage, DAMAGE_PICKUP_MULT, tank.damageIncreasedTimes);
 }
 
 function getTankShootingOrigin(tank: Tank): Vector2Like {

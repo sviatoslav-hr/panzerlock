@@ -1,5 +1,5 @@
-import {PickupType} from '#/entity/pickup';
-import {TankKind} from '#/entity/tank/generation';
+import type {PickupType} from '#/entity/pickup';
+import type {TankKind} from '#/entity/tank/generation';
 
 export interface LevelDesc {
     enemies: {
@@ -30,7 +30,9 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['light', 'light'],
             spawnedMax: 2,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     3: {
         enemies: {
@@ -45,7 +47,9 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['light', 'medium', 'light'],
             spawnedMax: 2,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     5: {
         enemies: {
@@ -59,7 +63,9 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['light', 'medium', 'light', 'medium'],
             spawnedMax: 3,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     7: {
         enemies: {
@@ -73,21 +79,27 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['light', 'light', 'medium', 'light', 'medium'],
             spawnedMax: 3,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     9: {
         enemies: {
             queue: ['light', 'light', 'heavy', 'light', 'medium'],
             spawnedMax: 3,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     10: {
         enemies: {
             queue: ['light', 'medium', 'heavy', 'light', 'medium'],
             spawnedMax: 3,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     11: {
         enemies: {
@@ -101,7 +113,9 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['light', 'medium', 'heavy', 'medium', 'light', 'medium'],
             spawnedMax: 3,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     13: {
         enemies: {
@@ -115,7 +129,9 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['light', 'medium', 'heavy', 'light', 'medium', 'heavy'],
             spawnedMax: 4,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     15: {
         enemies: {
@@ -130,7 +146,9 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['light', 'medium', 'light', 'medium', 'light', 'medium', 'light', 'medium', 'light', 'medium'],
             spawnedMax: 4,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     17: {
         enemies: {
@@ -145,7 +163,9 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['heavy', 'heavy', 'light', 'medium', 'light', 'light', 'medium', 'medium'],
             spawnedMax: 5,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
     19: {
         enemies: {
@@ -161,7 +181,9 @@ export const levelsPerDepth: Record<number, LevelDesc> = {
             queue: ['heavy', 'heavy', 'medium', 'light', 'heavy', 'heavy', 'medium', 'light', 'heavy', 'heavy', 'medium', 'light'],
             spawnedMax: 5,
         },
-        pickups: {},
+        pickups: {
+            forced: ['damage-boost'],
+        },
     },
 };
 
